@@ -34,3 +34,5 @@ jobs:
         run: pytest
       - name: Type check
         run: mypy
+      - name: Build wheel
+        run: python -m pip wheel --no-deps . --wheel-dir dist
