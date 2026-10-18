@@ -1,14 +1,14 @@
 # OpenAgent Realtime Conversation
 
 This repository is the future real-time voice-conversation component of OpenAgent. It is
-currently a development foundation only: no voice pipeline, wake-word integration, audio
-device integration, API client, or text-to-speech provider has been implemented yet.
+currently a development foundation with a speech-to-text-only local microphone command. It has
+no wake-word integration, AI response generation, text-to-speech, or Windows automation.
 
 ## Current functionality
 
-Phase 2 provides an installable Python package with a small, typed configuration boundary.
-It validates audio capture settings and a generic future-provider identity; it does not create
-an audio device or a provider client.
+The original configuration command validates generic provider settings without creating a device
+or provider client. The separate speech command captures local microphone audio through Pipecat
+and sends it to Deepgram Flux for transcription.
 
 Configuration is read only from environment variables:
 
@@ -31,10 +31,26 @@ openagent-realtime-config
 The command writes a structured JSON status event containing the provider name only. Do not put
 credentials in source code, logs, or committed `.env` files.
 
-The intended direction is Python, Pipecat, verified speech recognition and text-to-speech
-providers, and later integration with `openagent-wakeword` and the OpenAgent coordinator.
-Those dependencies are intentionally not declared until their compatibility and integration
-requirements are established.
+## Speech-to-text (Phase 3)
+
+Install the project into the repository virtual environment, then set the documented Deepgram
+credential in the current PowerShell session. Do not pass the key as a command-line argument.
+
+```powershell
+.venv\Scripts\python.exe -m pip install -e .
+$env:DEEPGRAM_API_KEY = "your-deepgram-key"
+openagent-realtime-stt
+```
+
+The command validates the key exists before opening the microphone. It prints `[INTERIM]` for
+partial recognition and `[FINAL]` for completed transcript results. Press `Ctrl+C` to stop it.
+
+During a live session, microphone audio is transmitted to Deepgram's cloud service for speech
+recognition. Ensure Windows microphone access is enabled and stop any wake-word or other program
+that owns the microphone first. This milestone does not make a live request during automated tests.
+
+The runtime dependency set includes Pipecat's documented Deepgram and local-audio extras. Future
+milestones may add wake-word coordination after microphone ownership is designed explicitly.
 
 ## Development checks
 

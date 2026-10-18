@@ -78,6 +78,32 @@ class AppConfig:
             ),
         )
 
+    @classmethod
+    def from_deepgram_environment(cls, environ: Mapping[str, str] | None = None) -> AppConfig:
+        """Build speech-to-text configuration from Deepgram's documented key variable.
+
+        This leaves the generic provider configuration unchanged while giving the
+        explicit speech command one unambiguous credential source.
+        """
+        environment = os.environ if environ is None else environ
+        return cls(
+            audio=AudioSettings(
+                sample_rate_hz=_positive_integer_from_environment(
+                    environment, "OPENAGENT_AUDIO_SAMPLE_RATE_HZ", 16_000
+                ),
+                channels=_positive_integer_from_environment(
+                    environment, "OPENAGENT_AUDIO_CHANNELS", 1
+                ),
+                chunk_size=_positive_integer_from_environment(
+                    environment, "OPENAGENT_AUDIO_CHUNK_SIZE", 320
+                ),
+            ),
+            provider=ProviderSettings(
+                name="deepgram",
+                api_key=_required_environment_value(environment, "DEEPGRAM_API_KEY"),
+            ),
+        )
+
 
 def _required_environment_value(environment: Mapping[str, str], name: str) -> str:
     value = environment.get(name)
