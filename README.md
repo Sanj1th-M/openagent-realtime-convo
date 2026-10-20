@@ -1,26 +1,51 @@
 # OpenAgent Realtime Conversation
 
-This repository is the future real-time voice-conversation component of OpenAgent. It is
-currently a development foundation only: no voice pipeline, wake-word integration, audio
-device integration, API client, or text-to-speech provider has been implemented yet.
+Real-time voice conversation component of OpenAgent, a personal Windows assistant.
 
-## Current functionality
+This repository is one component of that assistant. Wake-word detection lives in
+[`openagent-wakeword`](https://github.com/Sanj1th-M/openagent-wakeword). Desktop
+automation through UFO² is future work and has no implementation in this repository.
 
-Phase 2 provides an installable Python package with a small, typed configuration boundary.
-It validates audio capture settings and a generic future-provider identity; it does not create
-an audio device or a provider client.
+The merged code on this branch is the Phase 2 configuration foundation, package
+version `0.1.0`, commit `47ecc5a`. It validates settings and prints a safe status
+event. It does not capture audio, call a speech service, generate replies, or
+play speech.
 
-Configuration is read only from environment variables:
+Phase 3 speech input is an open, unmerged proposal in
+[pull request #10](https://github.com/Sanj1th-M/openagent-realtime-convo/pull/10).
+See [Project status](docs/PROJECT_STATUS.md) for the implemented, in-progress,
+planned, and unknown lists.
 
-- `OPENAGENT_PROVIDER` (required): a provider identifier.
-- `OPENAGENT_PROVIDER_API_KEY` (required): its credential. This is never logged and is hidden
-  from the configuration object's representation.
-- `OPENAGENT_AUDIO_SAMPLE_RATE_HZ` (optional, default `16000`)
-- `OPENAGENT_AUDIO_CHANNELS` (optional, default `1`)
-- `OPENAGENT_AUDIO_CHUNK_SIZE` (optional, default `320`)
+## Documentation
 
-All audio values must be positive integers. To validate a local configuration without starting
-any voice service:
+| Document | Contents |
+| --- | --- |
+| [Architecture](docs/ARCHITECTURE.md) | Merged package structure and configuration flow |
+| [Project status](docs/PROJECT_STATUS.md) | Implemented, in-progress, planned, and unknown work |
+| [Setup](docs/SETUP.md) | Local install and the configuration command |
+| [Security](docs/SECURITY.md) | Credentials, logging, and automated scans |
+| [Testing](docs/TESTING.md) | Test inventory and check commands |
+| [Decisions](docs/DECISIONS.md) | Decisions recorded by the merged tree and open proposals |
+| [Jarvis vision](docs/JARVIS_VISION.md) | Long-term assistant goal, separate from current capabilities |
+| [Integration map](docs/INTEGRATION_MAP.md) | Repository boundaries and planned connections |
+| [Roadmap](docs/ROADMAP.md) | Implemented, in-progress, planned, and undecided work |
+| [Agent handoff](docs/AGENT_HANDOFF.md) | Concise context and template for the next coding agent |
+| [AGENTS.md](AGENTS.md) | Working rules for coding agents |
+
+## Current command
+
+Configuration is read from the process environment:
+
+| Variable | Required | Default |
+| --- | --- | --- |
+| `OPENAGENT_PROVIDER` | yes | — |
+| `OPENAGENT_PROVIDER_API_KEY` | yes | — |
+| `OPENAGENT_AUDIO_SAMPLE_RATE_HZ` | no | `16000` |
+| `OPENAGENT_AUDIO_CHANNELS` | no | `1` |
+| `OPENAGENT_AUDIO_CHUNK_SIZE` | no | `320` |
+
+Audio values must be positive integers. The API key is omitted from object
+representations and from the structured log record.
 
 ```powershell
 $env:OPENAGENT_PROVIDER = "example"
@@ -28,38 +53,24 @@ $env:OPENAGENT_PROVIDER_API_KEY = "your-local-secret"
 openagent-realtime-config
 ```
 
-The command writes a structured JSON status event containing the provider name only. Do not put
-credentials in source code, logs, or committed `.env` files.
+On success the process logs a JSON event that contains the provider name, then
+exits `0`. On invalid configuration it logs `configuration_invalid`, prints a
+plain-text error to stderr, and exits `2`. Keep credentials out of source,
+logs, and committed `.env` files. Install steps are in [Setup](docs/SETUP.md).
 
-The intended direction is Python, Pipecat, verified speech recognition and text-to-speech
-providers, and later integration with `openagent-wakeword` and the OpenAgent coordinator.
-Those dependencies are intentionally not declared until their compatibility and integration
-requirements are established.
+## Intended direction
 
-## Development checks
+The merged README history records the intended direction as Python, Pipecat,
+verified speech-recognition and text-to-speech providers, and later integration
+with `openagent-wakeword` and an OpenAgent coordinator. Those voice dependencies
+are absent from the merged `pyproject.toml`. The dependency list stays empty
+until compatibility and integration requirements are established.
 
-The baseline is Python 3.12, matching the locally verified interpreter and CI runtime.
+The GitHub repository description names Pipecat, Deepgram Flux, and speech
+synthesis. That description matches the intended product direction. It does not
+describe the merged implementation.
 
-```powershell
-python -m pip install -r requirements-dev.txt
-python -m pip install -e .
-ruff check .
-ruff format --check .
-pytest
-mypy
-python -m pip wheel --no-deps . --wheel-dir dist
-bandit -ll -r src
-pip-audit -r requirements-dev.txt
-```
+## Development baseline
 
-`pip-audit` checks the declared development dependencies. Bandit scans tracked production
-Python files in GitHub Actions. CodeQL is included for future Python source and may require
-GitHub code scanning to be available for this repository.
-
-## Automation
-
-CI runs on pushes to `main`, pull requests targeting `main`, and manual dispatch. Security
-scans run on the same events plus a weekly schedule. Workflow permissions are read-only except
-for the CodeQL job's required `security-events: write` permission. Third-party action commits
-are pinned and maintained by Dependabot; CodeQL follows GitHub's recommended `v4` major tag so
-analysis engine updates remain available.
+The documented interpreter and the CI runtime are Python 3.12. The package
+accepts `>=3.12`. Local check commands are in [Testing](docs/TESTING.md).
