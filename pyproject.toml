@@ -10,10 +10,14 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
 authors = [{ name = "OpenAgent" }]
-dependencies = []
+# Deepgram Flux STT and the Windows local microphone transport.
+# Keep this within Pipecat's current stable major version because Phase 3 will
+# import its documented Flux and local-transport APIs directly.
+dependencies = ["pipecat-ai[deepgram,local]>=1.12.0,<2"]
 
 [project.scripts]
 openagent-realtime-config = "openagent_realtime_convo.__main__:main"
+openagent-realtime-stt = "openagent_realtime_convo.speech:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
