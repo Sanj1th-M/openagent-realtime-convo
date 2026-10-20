@@ -73,6 +73,14 @@ def _write_transcript(stream: TextIO, label: str, text: str) -> None:
         print(f"[{label}] {normalized}", file=stream, flush=True)
 
 
+def register_flux_transcript_handler(stt: DeepgramFluxSTTService, stream: TextIO) -> None:
+    """Display Flux Update events, which Pipecat does not wrap in interim frames."""
+
+    @stt.event_handler("on_update")  # type: ignore[untyped-decorator]
+    async def on_update(_: DeepgramFluxSTTService, transcript: str) -> None:
+        _write_transcript(stream, "INTERIM", transcript)
+
+
 async def run_speech_to_text(
     configuration: SpeechConfig,
     *,
@@ -88,6 +96,7 @@ async def run_speech_to_text(
         api_key=configuration.api_key,
         sample_rate=configuration.audio.sample_rate_hz,
     )
+    register_flux_transcript_handler(stt, transcript_stream)
     pipeline = Pipeline([transport.input(), stt, TranscriptPrinter(transcript_stream)])
     worker = PipelineWorker(
         pipeline,

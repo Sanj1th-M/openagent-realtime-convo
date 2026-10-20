@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from io import StringIO
+from typing import cast
 
 import pytest
+from pipecat.services.deepgram.flux.stt import DeepgramFluxSTTService
 
 from openagent_realtime_convo.config import AudioSettings
 from openagent_realtime_convo.speech import (
@@ -11,8 +13,23 @@ from openagent_realtime_convo.speech import (
     SpeechRuntimeError,
     _write_transcript,
     create_local_transport,
+    register_flux_transcript_handler,
     speech_config_from_environment,
 )
+
+
+class FluxEventSource:
+    """Minimal stand-in for Pipecat's documented event-handler interface."""
+
+    def __init__(self) -> None:
+        self.handlers: dict[str, object] = {}
+
+    def event_handler(self, event_name: str):  # type: ignore[no-untyped-def]
+        def register(handler: object) -> object:
+            self.handlers[event_name] = handler
+            return handler
+
+        return register
 
 
 def test_speech_configuration_requires_documented_deepgram_key() -> None:
@@ -44,6 +61,19 @@ def test_transcript_printer_distinguishes_interim_and_final_results() -> None:
         "[INTERIM] still speaking",
         "[FINAL] complete sentence",
     ]
+
+
+def test_flux_update_event_prints_an_interim_transcript() -> None:
+    stream = StringIO()
+    stt = FluxEventSource()
+    register_flux_transcript_handler(cast(DeepgramFluxSTTService, stt), stream)
+
+    handler = stt.handlers["on_update"]
+    assert callable(handler)
+    with pytest.raises(StopIteration):
+        handler(stt, "partial result").send(None)
+
+    assert stream.getvalue() == "[INTERIM] partial result\n"
 
 
 def test_speech_config_keeps_key_private() -> None:
