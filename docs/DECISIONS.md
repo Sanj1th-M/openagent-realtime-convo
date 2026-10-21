@@ -1,6 +1,6 @@
 # Decisions
 
-Decisions evidenced by the merged tree, and one proposal that is still open.
+Decisions evidenced by the merged tree at commit `b589041`.
 Items without a recorded choice are listed as unknown in
 [Project status](PROJECT_STATUS.md). This file does not add acceptance
 criteria or integration contracts.
@@ -27,13 +27,12 @@ variables are `OPENAGENT_PROVIDER`, `OPENAGENT_PROVIDER_API_KEY`,
 request #8 and the merged README describe this as a future-provider identity.
 The merged code does not construct a provider client.
 
-### D-004. Voice-pipeline dependencies stay undeclared on the merged line
+### D-004. Voice-pipeline dependencies declared via Pipecat
 
-`pyproject.toml` sets `dependencies = []`. `requirements-dev.txt` says runtime
-dependencies will be added with the voice pipeline. The merged README says
-Pipecat and speech providers are the intended direction and that those
-dependencies wait until compatibility and integration requirements are
-established.
+Phase 3 added `dependencies = ["pipecat-ai[deepgram,local]>=1.12.0,<2"]` to
+`pyproject.toml` for Deepgram Flux speech-to-text and local microphone transport.
+Additional voice-pipeline dependencies (text-to-speech, conversation models)
+remain undeclared until those components are designed.
 
 ### D-005. Python 3.12 is the verified baseline
 
@@ -47,13 +46,13 @@ CI does not matrix those versions.
 `ProviderSettings.api_key` uses `repr=False`. `JsonFormatter` writes `event`,
 `level`, `logger`, and, when present, `provider`. The configuration command
 logs the provider name on success. Configuration error messages identify the
-invalid setting.
+invalid setting. `SpeechConfig` similarly redacts its `api_key` in `__repr__`.
 
 ### D-007. The package uses a src layout and setuptools
 
 `pyproject.toml` sets `build-backend = "setuptools.build_meta"`, requires
 `setuptools>=68`, and finds packages under `src`. The version is `0.1.0`.
-The description is "Configuration foundation for OpenAgent's future realtime
+The description is "Configuration foundation for openagent's future realtime
 conversation service."
 
 ### D-008. License metadata is MIT
@@ -85,22 +84,19 @@ Ruff selects `E`, `F`, `I`, and `B`. Pytest uses `--strict-config` and
 `tests`. Bandit is invoked at `-ll` (medium severity and higher). `pip-audit`
 reads `requirements-dev.txt`.
 
+### D-012. Phase 3 speech input through Pipecat and Deepgram Flux
+
+Status: accepted via pull request #10 at commit `b589041`.
+
+The pipeline connects `LocalAudioTransport → DeepgramFluxSTTService → TranscriptPrinter`
+and provides the console script `openagent-realtime-stt`. Deepgram API key configuration
+is read from `DEEPGRAM_API_KEY` via `AppConfig.from_deepgram_environment()`. Interim
+and finalized transcripts are written to stdout. Wake-word integration, AI responses,
+text-to-speech, and UFO² remain outside this milestone.
+
 ## Proposed
 
-### P-001. Phase 3 speech input through Pipecat and Deepgram Flux
-
-Status: open pull request #10, unmerged, not part of commit `47ecc5a`.
-
-The pull request proposes speech input, Deepgram Flux speech-to-text, a
-Deepgram API key in the environment, and `openagent-realtime-stt`. The
-unmerged branch metadata declares `pipecat-ai[deepgram,local]>=1.12.0,<2`
-and the entry point `openagent_realtime_convo.speech:main`.
-
-The pull request reports speech-activity detection in a manual microphone
-test and says successful transcript output still needs verification. This
-proposal is not an accepted dependency of the merged package. Wake-word
-integration, AI responses, text-to-speech, and UFO² are outside the pull
-request's stated scope.
+None currently open.
 
 ## Related documents
 

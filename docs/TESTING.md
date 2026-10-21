@@ -51,7 +51,9 @@ with `testpaths = ["tests"]`.
 
 ## Merged test inventory
 
-Eight test functions collect 12 tests.
+Fourteen test functions collect 18 tests. Note that running tests requires an
+environment where the package's dependencies (`pipecat-ai[deepgram,local]`)
+are installed (e.g. inside `.venv`), because `tests/test_speech.py` imports Pipecat.
 
 `tests/test_config.py`:
 
@@ -71,29 +73,38 @@ Eight test functions collect 12 tests.
 | `test_pytest_configuration_is_strict_and_scoped_to_tests` | `testpaths` and strict pytest flags in `pyproject.toml` |
 | `test_gitignore_excludes_local_credentials` | `.env`, `*.pem`, and `*.key` are ignore lines |
 
-On 2026-10-19 these 12 tests passed in 0.35 seconds. The run used a temporary
-virtual environment on Python 3.12.3 with `pytest` and an editable install of
-this commit. That run did not execute Ruff, mypy, Bandit, `pip-audit`, or the
-wheel build.
+`tests/test_speech.py`:
+
+| Test | What it checks |
+| --- | --- |
+| `test_speech_configuration_requires_documented_deepgram_key` | Missing `DEEPGRAM_API_KEY` raises `SpeechConfigurationError` |
+| `test_speech_configuration_uses_existing_audio_environment_settings` | Reads audio env vars; API key omitted from `SpeechConfig` repr |
+| `test_transcript_printer_distinguishes_interim_and_final_results` | `[INTERIM]` and `[FINAL]` formatting in `TranscriptPrinter` |
+| `test_flux_update_event_prints_an_interim_transcript` | `on_update` event handler emits `[INTERIM]` transcript |
+| `test_speech_config_keeps_key_private` | `SpeechConfig` repr redacts `api_key` |
+| `test_microphone_startup_failure_is_safe_and_actionable` | Microphone failure wraps into `SpeechRuntimeError` with user message |
+
+On 2026-10-22, these 18 tests passed in the project virtual environment on
+Python 3.12.10.
 
 ## Coverage gaps in the merged suite
 
 The tests above do not exercise:
 
-- `__main__.main` or the process exit codes
+- `__main__.main` or its process exit codes
 - `JsonFormatter` or `configure_logging`
+- `speech.main` or its process exit codes
 - blank provider names, blank API keys, or whitespace-only required values
 - negative integers supplied through environment variables
-- a microphone, an audio device, a network call, or a provider SDK
+- live microphone capture or actual network communication with Deepgram Flux
 
-Phase 2 has no speech tests because the merged package has no speech code.
+## Verification status of speech pipeline
 
-## Phase 3 claims
-
-Pull request #10 says its author ran automated tests and static checks on
-that branch, and that manual microphone testing showed speech activity while
-transcript output still needs verification. Those results were not reproduced
-for this documentation. The merged suite remains the 12 tests listed above.
+Automated unit tests cover event wiring, transcript formatting, error handling,
+and configuration parsing. Live microphone capture and end-to-end transcription
+against Deepgram Flux are not verifiable in headless CI. Verifying end-to-end
+recognition requires a manual run on a machine with a working microphone and
+an active Deepgram API key.
 
 ## Related documents
 

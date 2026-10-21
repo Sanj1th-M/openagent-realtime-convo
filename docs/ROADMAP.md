@@ -8,24 +8,21 @@ status](PROJECT_STATUS.md); this page provides a short navigation view.
 
 - Phase 2 configuration foundation: typed environment-backed settings, safe
   structured logging, and `openagent-realtime-config`.
+- Phase 3 speech-input pipeline: Pipecat `LocalAudioTransport`, Deepgram Flux
+  speech-to-text, `openagent-realtime-stt`, and 18 passing unit tests.
 - Package, tests, CI, security automation, and dependency-update configuration
-  present on the merged branch.
+  present on the merged `main` branch.
 
 ## In progress
 
-- Phase 3 speech input is open pull request #10 on
-  `feat/phase3-speech-input`; it is unmerged. Its proposal includes Pipecat,
-  Deepgram Flux, a `DEEPGRAM_API_KEY`, and `openagent-realtime-stt`.
-- The pull request reports speech-activity detection, but successful transcript
-  output remains unverified. It must not be described as working on the merged
-  package.
+None. Phase 3 is merged into `main` at commit `b589041`.
 
 ## Planned
 
-- A compatible real-time voice pipeline.
-- Verified speech-to-text and text-to-speech.
+- End-to-end verification of live microphone capture and transcript output with Deepgram Flux.
+- Verified text-to-speech pipeline.
 - Later coordination with `openagent-wakeword`.
-- AI-generated conversation responses and an OpenAgent coordinator.
+- AI-generated conversation responses and an openagent coordinator.
 - Potential future UFO² desktop automation.
 
 These are directions, not approved interfaces or delivery commitments. The
