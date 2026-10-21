@@ -1,7 +1,8 @@
 # Architecture
 
-This document describes the merged package at commit `47ecc5a`. Phase 3 and
-later conversation behavior are outside this architecture. Their status is in
+This document describes the merged package at commit `b589041`. Phase 2 established the
+configuration foundation; Phase 3 added the speech-input pipeline. Later conversation
+capabilities are outside this architecture. Their status is in
 [Project status](PROJECT_STATUS.md).
 
 ## Component boundaries
@@ -12,7 +13,10 @@ flowchart TB
     env["Process environment"]
     config["AppConfig"]
     cli["openagent-realtime-config"]
+    stt["speech.py (LocalAudioTransport -> DeepgramFluxSTTService -> TranscriptPrinter)"]
+    sttCli["openagent-realtime-stt"]
     env --> config --> cli
+    env --> config --> stt --> sttCli
   end
 
   subgraph separate["Separate repository"]
@@ -20,10 +24,9 @@ flowchart TB
   end
 
   subgraph namedLater["Named later work, no design recorded here"]
-    phase3["Phase 3 speech input, open pull request"]
     replies["AI responses"]
     speechOut["Speech output"]
-    coordinator["OpenAgent coordinator"]
+    coordinator["openagent coordinator"]
     ufo["UFO² desktop automation"]
   end
 ```
@@ -36,27 +39,29 @@ boundaries and explicitly planned connections are in
 [Integration map](INTEGRATION_MAP.md).
 
 The public GitHub description names Pipecat, Deepgram Flux, and speech
-synthesis. Those names are product direction. They are not modules in the
-merged package.
+synthesis. Pipecat and Deepgram Flux are integrated in the merged speech-input
+pipeline. Speech synthesis and assistant responses remain future product direction.
 
 ## Package layout
 
 The installable distribution is `openagent-realtime-convo` `0.1.0`. The import
 package is `openagent_realtime_convo`, discovered from `src` by setuptools.
-`requires-python` is `>=3.12`. Runtime `dependencies` is empty. The author
-field is `OpenAgent`. License metadata is the SPDX string `MIT`.
+`requires-python` is `>=3.12`. Runtime `dependencies` declares
+`pipecat-ai[deepgram,local]>=1.12.0,<2`. License metadata is the SPDX string `MIT`.
 
 | Module | Responsibility |
 | --- | --- |
 | `config.py` | Validate environment-backed settings |
 | `logging.py` | Emit a fixed set of JSON log fields |
-| `__main__.py` | Configuration command |
+| `__main__.py` | Configuration validation command |
+| `speech.py` | Local microphone capture and Deepgram Flux speech-to-text pipeline |
 | `__init__.py` | Export `AppConfig`, `AudioSettings`, `ProviderSettings`, and `ConfigurationError` |
 
-The only console script on this branch is:
+The console scripts on this branch are:
 
 ```text
 openagent-realtime-config = openagent_realtime_convo.__main__:main
+openagent-realtime-stt = openagent_realtime_convo.speech:main
 ```
 
 ## Configuration flow
@@ -106,11 +111,36 @@ boolean text.
 non-whitespace characters. The stored strings are the raw environment values.
 The key uses `field(repr=False)`, so `repr` omits it.
 
-This type identifies a future provider. It does not construct a client, select
-Deepgram, or choose a speech-synthesis vendor. The merged tree has one
-credential variable, `OPENAGENT_PROVIDER_API_KEY`.
+`AppConfig.from_environment()` reads the generic `OPENAGENT_PROVIDER` and
+`OPENAGENT_PROVIDER_API_KEY` variables. `AppConfig.from_deepgram_environment()`
+reads `DEEPGRAM_API_KEY` directly and sets the provider name to `"deepgram"`.
 
 `ConfigurationError` subclasses `ValueError`.
+
+## Speech-to-text pipeline
+
+`openagent_realtime_convo.speech` implements a real-time speech input pipeline
+using Pipecat and Deepgram Flux:
+
+- `SpeechConfig`: Slotted frozen dataclass storing `api_key` and `AudioSettings`,
+  with a custom `__repr__` that redacts `api_key`.
+- `speech_config_from_environment()`: Reads `DEEPGRAM_API_KEY` and audio settings,
+  raising `SpeechConfigurationError` on validation failure.
+- `create_local_transport()`: Builds Pipecat's `LocalAudioTransport` for microphone
+  input with `LocalAudioTransportParams`. Device acquisition errors raise
+  `SpeechRuntimeError` with user guidance.
+- `DeepgramFluxSTTService`: Connects to Deepgram Flux speech-to-text service.
+  `register_flux_transcript_handler()` registers an `on_update` handler to emit
+  `[INTERIM]` results.
+- `TranscriptPrinter`: A `FrameProcessor` that pushes frames down the pipeline and
+  prints `[INTERIM]` or `[FINAL]` transcript text to the given output stream without
+  logging transcript contents to system logs.
+- `openagent-realtime-stt`: Console entry point executing the async pipeline.
+  Exit code `0` on success or `KeyboardInterrupt`, `1` on `SpeechRuntimeError`,
+  and `2` on `SpeechConfigurationError`.
+
+End-to-end transcript output from a live microphone session requires a manual run
+with a valid Deepgram account and local microphone access.
 
 ## Logging
 
@@ -144,9 +174,12 @@ A successful run for provider `example` produces this record:
 
 ## What this architecture includes
 
-The merged behavior is configuration validation, safe structured logging, and
-the `openagent-realtime-config` command. Quality gates around that package are
-documented in [Testing](TESTING.md) and [Security](SECURITY.md).
+The merged behavior includes:
+1. Configuration validation and safe structured logging (`openagent-realtime-config`).
+2. Local microphone capture and Deepgram Flux speech-to-text pipeline (`openagent-realtime-stt`).
+
+Quality gates around that package are documented in [Testing](TESTING.md) and
+[Security](SECURITY.md).
 
 ## Related documents
 

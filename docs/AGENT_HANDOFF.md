@@ -6,12 +6,12 @@ tree, source, tests, and `pyproject.toml` before changing behavior.
 
 ## Current documentation state
 
-- Merged branch state: Phase 2 configuration foundation at `47ecc5a`.
-- In-progress proposal: Phase 3 pull request #10 is unmerged; transcript
-  output is not verified.
-- This documentation pass adds the Jarvis vision, planned integration map,
-  status-based roadmap, and this handoff page. It does not change application
-  code, dependencies, tests, or workflows.
+- Merged branch state: Phase 2 configuration foundation and Phase 3 speech-input
+  pipeline merged at commit `b589041`.
+- Phase 3 is merged: includes Pipecat local audio transport, Deepgram Flux STT,
+  `openagent-realtime-stt`, and 18 passing unit tests. Live microphone end-to-end
+  transcription output has not been verified in CI.
+- No in-progress pull requests are currently open.
 
 ## Handoff template
 

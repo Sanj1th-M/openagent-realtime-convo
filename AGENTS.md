@@ -7,7 +7,7 @@ merged source, `pyproject.toml`, and tests.
 
 ## Repository boundaries
 
-OpenAgent is a personal Windows assistant split across separate projects.
+openagent is a personal Windows assistant split across separate projects.
 
 | Project | Responsibility |
 | --- | --- |
@@ -35,19 +35,20 @@ Use these categories in documentation and in change descriptions.
 
 Phase numbers that appear in the repository record:
 
-- Phase 2 is the merged configuration foundation.
-- Phase 3 is open [pull request #10](https://github.com/Sanj1th-M/openagent-realtime-convo/pull/10).
+- Phase 2 is the configuration foundation, merged at commit `96eb109` (pull request #8) and
+  refined at `47ecc5a` (pull request #9).
+- Phase 3 is the speech-input pipeline, merged at commit `b589041` (pull request #10).
 
-Do not assign numbers to the earlier CI foundation or to later ideas. Do not
-invent integration contracts or acceptance criteria. The Phase 3 pull request
-says transcript output still needs verification. Do not report that
-transcription works.
+Do not assign numbers to the earlier CI foundation or to later ideas. The Phase 3 merge
+adds a Pipecat pipeline and Deepgram Flux speech-to-text, but end-to-end transcript output
+from a live microphone session has not been verified in CI. Do not describe it as confirmed
+working without evidence from a manual run.
 
 ## Working rules
 
 - Verify a dependency in `pyproject.toml` or `requirements-dev.txt` before
-  calling it an implemented feature. The merged runtime dependency list is
-  empty. `pipecat-ai` appears only on the unmerged Phase 3 branch.
+  calling it an implemented feature. The runtime dependency is
+  `pipecat-ai[deepgram,local]>=1.12.0,<2`, declared on the merged `main` branch.
 - Protect secrets. Do not print `OPENAGENT_PROVIDER_API_KEY`, commit `.env`
   files, or add credentials to logs, tests, or docs.
 - Keep changes modular and covered by tests when behavior changes.
