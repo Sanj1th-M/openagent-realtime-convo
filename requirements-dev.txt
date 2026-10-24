@@ -1,5 +1,5 @@
 # Development and CI tooling. Runtime dependencies will be added with the voice pipeline.
-build>=1.2.2,<2.0
+build>=1.6.1,<2.0
 pytest>=9.1.1,<10.0
 ruff>=0.17.0,<1.0
 mypy>=2.4.0,<3.0
