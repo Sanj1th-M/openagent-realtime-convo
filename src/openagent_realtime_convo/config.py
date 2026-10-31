@@ -35,12 +35,15 @@ class ProviderSettings:
 
     name: str
     api_key: str = field(repr=False)
+    model: str | None = None
 
     def __post_init__(self) -> None:
         if not self.name.strip():
             raise ConfigurationError("provider name must not be empty")
         if not self.api_key.strip():
             raise ConfigurationError("provider API key must not be empty")
+        if self.model is not None and (not isinstance(self.model, str) or not self.model.strip()):
+            raise ConfigurationError("provider model must not be empty when provided")
 
 
 @dataclass(frozen=True, slots=True)
@@ -55,11 +58,17 @@ class AppConfig:
         """Build configuration from environment variables without logging credentials.
 
         Required variables are ``OPENAGENT_PROVIDER`` and
-        ``OPENAGENT_PROVIDER_API_KEY``. Optional audio variables are
-        ``OPENAGENT_AUDIO_SAMPLE_RATE_HZ``, ``OPENAGENT_AUDIO_CHANNELS``, and
-        ``OPENAGENT_AUDIO_CHUNK_SIZE``.
+        ``OPENAGENT_PROVIDER_API_KEY``. Optional variables are
+        ``OPENAGENT_PROVIDER_MODEL``, ``OPENAGENT_AUDIO_SAMPLE_RATE_HZ``,
+        ``OPENAGENT_AUDIO_CHANNELS``, and ``OPENAGENT_AUDIO_CHUNK_SIZE``.
         """
         environment = os.environ if environ is None else environ
+        model_name = environment.get("OPENAGENT_PROVIDER_MODEL")
+        if model_name is not None:
+            model_name = model_name.strip()
+            if not model_name:
+                raise ConfigurationError("OPENAGENT_PROVIDER_MODEL must not be empty when set")
+
         return cls(
             audio=AudioSettings(
                 sample_rate_hz=_positive_integer_from_environment(
@@ -75,6 +84,7 @@ class AppConfig:
             provider=ProviderSettings(
                 name=_required_environment_value(environment, "OPENAGENT_PROVIDER"),
                 api_key=_required_environment_value(environment, "OPENAGENT_PROVIDER_API_KEY"),
+                model=model_name,
             ),
         )
 
@@ -101,6 +111,44 @@ class AppConfig:
             provider=ProviderSettings(
                 name="deepgram",
                 api_key=_required_environment_value(environment, "DEEPGRAM_API_KEY"),
+            ),
+        )
+
+    @classmethod
+    def from_openrouter_environment(cls, environ: Mapping[str, str] | None = None) -> AppConfig:
+        """Build OpenRouter brain configuration from environment variables.
+
+        Accepts ``OPENROUTER_API_KEY`` or ``OPENAGENT_PROVIDER_API_KEY``, with
+        optional ``OPENROUTER_MODEL`` or ``OPENAGENT_PROVIDER_MODEL``.
+        """
+        environment = os.environ if environ is None else environ
+        api_key = environment.get("OPENROUTER_API_KEY") or environment.get(
+            "OPENAGENT_PROVIDER_API_KEY"
+        )
+        if api_key is None or not api_key.strip():
+            raise ConfigurationError("OPENROUTER_API_KEY or OPENAGENT_PROVIDER_API_KEY must be set")
+        model = environment.get("OPENROUTER_MODEL") or environment.get("OPENAGENT_PROVIDER_MODEL")
+        if model is not None:
+            model = model.strip()
+            if not model:
+                model = None
+
+        return cls(
+            audio=AudioSettings(
+                sample_rate_hz=_positive_integer_from_environment(
+                    environment, "OPENAGENT_AUDIO_SAMPLE_RATE_HZ", 16_000
+                ),
+                channels=_positive_integer_from_environment(
+                    environment, "OPENAGENT_AUDIO_CHANNELS", 1
+                ),
+                chunk_size=_positive_integer_from_environment(
+                    environment, "OPENAGENT_AUDIO_CHUNK_SIZE", 320
+                ),
+            ),
+            provider=ProviderSettings(
+                name="openrouter",
+                api_key=api_key.strip(),
+                model=model,
             ),
         )
 
