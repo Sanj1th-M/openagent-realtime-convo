@@ -1,8 +1,8 @@
 # Project status
 
-Status of `openagent-realtime-convo` as inspected on 2026-10-22.
+Status of `openagent-realtime-convo` as inspected on 2026-10-31.
 
-The documented tree is branch `main` at commit `b589041`. Package version `0.1.0`. Runtime
+The documented tree is branch `main` plus Phase 4 (unmerged working tree). Package version `0.1.0`. Runtime
 dependencies: `pipecat-ai[deepgram,local]>=1.12.0,<2`.
 
 Categories below are exhaustive for this inspection. A capability listed in one
@@ -37,6 +37,10 @@ Merged Phase 2 (PR #8 and housekeeping PR #9) and Phase 3 (PR #10).
 - Dependabot weekly updates for pip and GitHub Actions.
 - `.gitignore` coverage for environments, build output, `.env` files, `*.pem`,
   and `*.key`.
+- Phase 4 wake-word coordinator: `wakeword.py` (`WakeWordCoordinator`),
+  `openagent-jarvis` console script, environment configuration, and 21 unit tests
+  in `tests/test_wakeword.py`. Unit and integration tests with mocks pass completely;
+  live microphone and Deepgram end-to-end testing is pending and the branch is unmerged.
 
 The commit before the package, `1d2a273`, adds CI, security automation,
 `.gitignore`, the first README, tool configuration, and
@@ -47,8 +51,10 @@ under Python 3.12.10 in the project virtual environment. See [Testing](TESTING.m
 
 ## In progress
 
-None. Phase 3 is merged into `main` at commit `b589041`. No other pull requests
-or feature branches are currently open against `main`.
+Phase 4 wake-word integration (`wakeword.py`, `openagent-jarvis`, unit tests) is
+implemented in this unmerged working tree. All 39 automated tests pass in the local
+virtual environment. Live microphone and Deepgram end-to-end testing has not been
+executed in CI or on hardware, and the branch is unmerged.
 
 ## Planned
 
@@ -59,8 +65,7 @@ them has a design, interface, or acceptance criterion in this repository.
   against Deepgram Flux (unit tests and event wiring are verified; live end-to-end
   audio flow has not been verified in CI).
 - Verified text-to-speech. No provider is named in the merged tree.
-- Later integration with `openagent-wakeword`. Microphone ownership must be
-  designed before wake-word coordination.
+- Live end-to-end verification of the full wake-word → STT cycle on hardware.
 - An openagent coordinator. Named but not defined in the merged tree.
 - AI-generated responses during a conversation.
 - UFO², or another desktop-automation integration, as a future part of the
@@ -72,7 +77,6 @@ them has a design, interface, or acceptance criterion in this repository.
 - Any phase number after Phase 3.
 - The speech-output provider and library.
 - The conversation model and how `OPENAGENT_PROVIDER` relates to `DEEPGRAM_API_KEY`.
-- The wake-word handoff: event payload, process model, and microphone owner.
 - The openagent coordinator interface.
 - Whether UFO² will be called from this repository.
 - The Windows audio host API for future capture paths.

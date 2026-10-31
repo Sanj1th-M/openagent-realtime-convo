@@ -94,6 +94,26 @@ is read from `DEEPGRAM_API_KEY` via `AppConfig.from_deepgram_environment()`. Int
 and finalized transcripts are written to stdout. Wake-word integration, AI responses,
 text-to-speech, and UFO² remain outside this milestone.
 
+### D-013. Phase 4 wake-word coordinator with pause/resume mic handoff
+
+Status: implemented in the Phase 4 working tree.
+
+The coordinator in `wakeword.py` bridges `openagent-wakeword`'s `WakeWordDetector`
+(threading-based) with the Phase 3 Pipecat STT pipeline (asyncio-based) via a
+single-process STANDBY→ACTIVE→STANDBY loop:
+
+- **STANDBY**: `WakeWordDetector.start()` opens the mic. The coordinator awaits
+  a `WakeWordEvent` signal transferred thread-safely via `call_soon_threadsafe`.
+- **ACTIVE**: `detector.pause()` releases the mic stream (model stays loaded);
+  the acknowledgement is printed; `run_speech_to_text` runs with a timeout guard.
+- Return to STANDBY: `detector.resume()` reclaims the mic regardless of STT outcome.
+
+`openagent-wakeword` is imported optionally (`try/except ImportError`) so CI passes
+without it installed. Configuration reads `OPENAGENT_WAKEWORD_MODEL_DIR`,
+`OPENAGENT_WAKEWORD_THRESHOLD`, `OPENAGENT_WAKEWORD_COOLDOWN`, and
+`OPENAGENT_STT_TIMEOUT` from the environment. The console script is
+`openagent-jarvis`.
+
 ## Proposed
 
 None currently open.

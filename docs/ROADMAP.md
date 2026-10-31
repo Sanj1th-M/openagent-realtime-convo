@@ -10,18 +10,23 @@ status](PROJECT_STATUS.md); this page provides a short navigation view.
   structured logging, and `openagent-realtime-config`.
 - Phase 3 speech-input pipeline: Pipecat `LocalAudioTransport`, Deepgram Flux
   speech-to-text, `openagent-realtime-stt`, and 18 passing unit tests.
+- Phase 4 wake-word coordinator: `WakeWordCoordinator`, `openagent-jarvis`,
+  pause/resume mic handoff with `openagent-wakeword`, and 20 unit tests.
 - Package, tests, CI, security automation, and dependency-update configuration
   present on the merged `main` branch.
 
 ## In progress
 
-None. Phase 3 is merged into `main` at commit `b589041`.
+Phase 4 wake-word integration: `WakeWordCoordinator` in `wakeword.py` with
+pause/resume microphone handoff, `openagent-jarvis` console script, and 21 passing
+unit tests in `tests/test_wakeword.py`. Automated tests pass, but live microphone and
+Deepgram end-to-end testing is still pending, and the feature branch is unmerged.
 
 ## Planned
 
 - End-to-end verification of live microphone capture and transcript output with Deepgram Flux.
 - Verified text-to-speech pipeline.
-- Later coordination with `openagent-wakeword`.
+- Live end-to-end verification of the full wake-word → STT cycle (manual run).
 - AI-generated conversation responses and an openagent coordinator.
 - Potential future UFO² desktop automation.
 
@@ -30,7 +35,6 @@ planned boundaries are illustrated in [Integration map](INTEGRATION_MAP.md).
 
 ## Undecided
 
-- Wake-word handoff, microphone ownership, and process model.
 - Conversation-model and speech-output provider choices.
 - Coordinator and UFO² integration interfaces.
 - Windows audio host API and deployment model.
