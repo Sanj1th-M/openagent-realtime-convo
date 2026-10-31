@@ -1,9 +1,9 @@
 # Architecture
 
-This document describes the merged package at commit `b589041`. Phase 2 established the
-configuration foundation; Phase 3 added the speech-input pipeline. Later conversation
-capabilities are outside this architecture. Their status is in
-[Project status](PROJECT_STATUS.md).
+This document describes the package extended through Phase 4. Phase 2 established the
+configuration foundation; Phase 3 added the speech-input pipeline; Phase 4 adds the
+wake-word coordinator. Later conversation capabilities are outside this architecture.
+Their status is in [Project status](PROJECT_STATUS.md).
 
 ## Component boundaries
 
@@ -15,13 +15,18 @@ flowchart TB
     cli["openagent-realtime-config"]
     stt["speech.py (LocalAudioTransport -> DeepgramFluxSTTService -> TranscriptPrinter)"]
     sttCli["openagent-realtime-stt"]
+    coord["wakeword.py (WakeWordCoordinator)"]
+    jarvisCli["openagent-jarvis"]
     env --> config --> cli
     env --> config --> stt --> sttCli
+    env --> config --> coord --> jarvisCli
   end
 
   subgraph separate["Separate repository"]
-    wake["openagent-wakeword"]
+    wake["openagent-wakeword (WakeWordDetector)"]
   end
+
+  wake -- "pause/resume handoff (imported optionally)" --> coord
 
   subgraph namedLater["Named later work, no design recorded here"]
     replies["AI responses"]
@@ -31,9 +36,9 @@ flowchart TB
   end
 ```
 
-`openagent-wakeword` is a separate repository for wake-word detection. This
-repository does not import it, depend on it, or define a handoff event,
-payload, process model, or microphone owner. UFO² is a future assistant
+`openagent-wakeword` is a separate repository for wake-word detection. The
+`WakeWordCoordinator` in `wakeword.py` imports it optionally and coordinates the
+microphone handoff: the detector is paused before STT and resumed after. UFO² is a future assistant
 integration with no type, module, or protocol in this tree. The intended
 boundaries and explicitly planned connections are in
 [Integration map](INTEGRATION_MAP.md).

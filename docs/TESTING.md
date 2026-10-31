@@ -51,7 +51,8 @@ with `testpaths = ["tests"]`.
 
 ## Merged test inventory
 
-Fourteen test functions collect 18 tests. Note that running tests requires an
+Thirty-five test functions collect 39 tests across config, repository, speech,
+and wake-word coordinator suites. Note that running tests requires an
 environment where the package's dependencies (`pipecat-ai[deepgram,local]`)
 are installed (e.g. inside `.venv`), because `tests/test_speech.py` imports Pipecat.
 
@@ -84,7 +85,34 @@ are installed (e.g. inside `.venv`), because `tests/test_speech.py` imports Pipe
 | `test_speech_config_keeps_key_private` | `SpeechConfig` repr redacts `api_key` |
 | `test_microphone_startup_failure_is_safe_and_actionable` | Microphone failure wraps into `SpeechRuntimeError` with user message |
 
-On 2026-10-22, these 18 tests passed in the project virtual environment on
+
+`tests/test_wakeword.py`:
+
+| Test | What it checks |
+| --- | --- |
+| `test_coordinator_calls_start_and_stop_on_detector` | `detector.start()` called on startup, `stop()` in `finally` |
+| `test_coordinator_pauses_detector_before_stt` | `detector.pause()` called before STT opens the mic |
+| `test_coordinator_resumes_detector_after_stt_completes` | `detector.resume()` called after STT completes |
+| `test_coordinator_resumes_after_stt_timeout` | STT timeout resumes detector and does not crash |
+| `test_coordinator_resumes_after_stt_runtime_error` | `SpeechRuntimeError` during STT resumes detector |
+| `test_coordinator_stops_detector_on_cancel` | Task cancellation calls `detector.stop()` |
+| `test_coordinator_prints_acknowledgement_before_stt` | Acknowledgement text printed before STT capture starts |
+| `test_wake_callback_uses_call_soon_threadsafe` | Thread-safe loop signalling from audio thread |
+| `test_wake_callback_ignores_duplicate_during_active` | Duplicate detection while active is ignored |
+| `test_wake_callback_is_noop_before_run` | Callback is safe if fired before run loop begins |
+| `test_coordinator_config_reads_required_environment` | Parses `DEEPGRAM_API_KEY` and `OPENAGENT_WAKEWORD_MODEL_DIR` |
+| `test_coordinator_config_reads_optional_overrides` | Reads threshold, cooldown, and STT timeout overrides |
+| `test_coordinator_config_requires_deepgram_key` | Missing Deepgram key raises `WakeWordCoordinatorError` |
+| `test_coordinator_config_requires_model_dir` | Missing model dir raises `WakeWordCoordinatorError` |
+| `test_coordinator_config_rejects_invalid_threshold` | Non-positive threshold rejected |
+| `test_coordinator_config_rejects_invalid_stt_timeout` | Non-positive STT timeout rejected |
+| `test_coordinator_config_rejects_non_numeric_cooldown` | Non-numeric cooldown rejected |
+| `test_coordinator_config_allows_zero_cooldown` | Zero cooldown permitted |
+| `test_coordinator_raises_on_detector_start_failure` | Startup error converted to actionable user message |
+| `test_coordinator_stop_called_even_when_start_fails` | `detector.stop()` guaranteed even on start failure |
+| `test_standby_without_initialization_raises_error` | Calling `_standby()` without `run()` raises coordinator error |
+
+On 2026-10-31, all 39 tests passed in the project virtual environment on
 Python 3.12.10.
 
 ## Coverage gaps in the merged suite
