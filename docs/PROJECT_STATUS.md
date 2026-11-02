@@ -51,10 +51,19 @@ under Python 3.12.10 in the project virtual environment. See [Testing](TESTING.m
 
 ## In progress
 
-Phase 4 wake-word integration (`wakeword.py`, `openagent-jarvis`, unit tests) is
-implemented in this unmerged working tree. All 39 automated tests pass in the local
-virtual environment. Live microphone and Deepgram end-to-end testing has not been
-executed in CI or on hardware, and the branch is unmerged.
+Phase 4 wake-word integration (`wakeword.py`, `openagent-jarvis`, unit tests),
+the provider-independent brain interface, and OpenRouter, Google Gemini,
+OpenAI, and Anthropic Claude brain adapters are implemented in this unmerged
+working tree, along with an Ollama adapter for local model serving. The adapters
+use mockable asynchronous HTTP clients and `.env` loading with
+process-environment precedence. `AppConfig.from_brain_environment()` selects an
+adapter from common configuration, and `TranscriptBrainCoordinator` validates a
+finalized STT transcript, applies a timeout, and returns the brain response.
+Neither component is wired into the live microphone pipeline and no TTS exists.
+`openagent-realtime-brain-smoke` can safely make an opt-in live request for
+configured providers and skips unavailable configuration or Ollama models.
+Live microphone and Deepgram end-to-end testing has not been executed in CI or
+on hardware, and the branch is unmerged.
 
 ## Planned
 

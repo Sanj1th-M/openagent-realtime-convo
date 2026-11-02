@@ -52,7 +52,7 @@ class WakeWordCoordinatorError(RuntimeError):
 def _load_detector(model_dir: Path, threshold: float, cooldown: float) -> Any:
     """Import and construct a WakeWordDetector; raise WakeWordCoordinatorError when unavailable."""
     try:
-        from openagent_wakeword import WakeWordConfig, WakeWordDetector  # type: ignore[import-not-found]
+        from openagent_wakeword import WakeWordConfig, WakeWordDetector
     except ImportError as exc:
         raise WakeWordCoordinatorError(
             "openagent-wakeword is not installed in this environment. "
@@ -211,6 +211,8 @@ class WakeWordCoordinator:
 
 def coordinator_config_from_environment(
     environ: Mapping[str, str] | None = None,
+    *,
+    load_env: bool = True,
 ) -> tuple[SpeechConfig, Path, float, float, float]:
     """Read all Phase-4 coordinator settings from the environment.
 
@@ -231,7 +233,14 @@ def coordinator_config_from_environment(
     """
     import os
 
-    env: Mapping[str, str] = os.environ if environ is None else environ
+    if environ is None:
+        if load_env:
+            from .config import load_environment
+
+            load_environment()
+        env: Mapping[str, str] = os.environ
+    else:
+        env = environ
 
     # Speech config (reuses existing Phase-3 path).
     try:

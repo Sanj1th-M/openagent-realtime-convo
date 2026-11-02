@@ -46,6 +46,52 @@ The Phase 2 configuration command reads the process environment:
 Audio values must be positive integers. The API key is omitted from object
 representations and structured log records.
 
+## Brain providers (Phase 4 in progress)
+
+The provider-independent brain interface currently has asynchronous OpenRouter,
+Google Gemini, OpenAI, Anthropic Claude, and Ollama adapters. They are library
+components only: the conversation coordinator does not yet call them, so they
+do not produce replies in the current microphone pipeline.
+
+For Gemini, set `GEMINI_API_KEY` (or the shared
+`OPENAGENT_PROVIDER_API_KEY`) and optionally `GEMINI_MODEL` (or
+`OPENAGENT_PROVIDER_MODEL`), then build configuration with
+`AppConfig.from_gemini_environment()`. The default model is
+`gemini-2.0-flash`. Copy [.env.example](.env.example) to a local `.env` file;
+it is loaded without overriding values already present in the process
+environment. Never commit the local `.env` file.
+
+For OpenAI, use `OPENAI_API_KEY` (or `OPENAGENT_PROVIDER_API_KEY`) and
+optionally `OPENAI_MODEL` (or `OPENAGENT_PROVIDER_MODEL`) with
+`AppConfig.from_openai_environment()`. Its default model is `gpt-4o-mini`.
+
+For Claude, use `ANTHROPIC_API_KEY` (or `OPENAGENT_PROVIDER_API_KEY`) and
+optionally `ANTHROPIC_MODEL` (or `OPENAGENT_PROVIDER_MODEL`) with
+`AppConfig.from_anthropic_environment()`. Its default model is
+`claude-3-5-haiku-latest`.
+
+For Ollama, use `OLLAMA_BASE_URL` and `OLLAMA_MODEL` with
+`AppConfig.from_ollama_environment()`. It defaults to the local Ollama API at
+`http://127.0.0.1:11434` and model `llama3.2`; no API key is required for the
+standard local API.
+
+`AppConfig.from_brain_environment()` selects any of the five adapters from
+`OPENAGENT_PROVIDER`, preferring that provider's API key and model variables
+over the generic fallbacks. A local `.env` is loaded without replacing process
+environment values. `TranscriptBrainCoordinator` accepts one non-empty,
+finalized STT transcript and returns the selected provider's `BrainResponse`;
+it has no TTS dependency and is not yet wired into the live microphone command.
+
+### Optional live brain smoke test
+
+After configuring a local `.env`, run `openagent-realtime-brain-smoke`. It
+uses a fixed non-sensitive prompt, prints only PASS/FAIL/SKIP status (never
+keys or response text), and skips remote providers without a provider-specific
+key unless that provider is the selected generic-key provider. Use
+`--provider openai` (or another listed provider) to limit the run. Before an
+Ollama request, it checks that the local service responds and the configured
+model is installed.
+
 ```powershell
 $env:OPENAGENT_PROVIDER = "example"
 $env:OPENAGENT_PROVIDER_API_KEY = "your-local-secret"

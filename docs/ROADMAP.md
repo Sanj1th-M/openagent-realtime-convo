@@ -17,10 +17,13 @@ status](PROJECT_STATUS.md); this page provides a short navigation view.
 
 ## In progress
 
-Phase 4 wake-word integration: `WakeWordCoordinator` in `wakeword.py` with
-pause/resume microphone handoff, `openagent-jarvis` console script, and 21 passing
-unit tests in `tests/test_wakeword.py`. Automated tests pass, but live microphone and
-Deepgram end-to-end testing is still pending, and the feature branch is unmerged.
+Phase 4 adds `WakeWordCoordinator` in `wakeword.py` with pause/resume microphone
+handoff, the `openagent-jarvis` console script, and provider-independent AI-brain
+adapters for OpenRouter, Google Gemini, OpenAI, and Anthropic Claude.
+Ollama is also supported for local model serving. Automated tests use mocks;
+the brain adapters are not yet wired into a live conversation. Live microphone
+and Deepgram end-to-end testing is still pending, and the feature branch is
+unmerged.
 
 ## Planned
 

@@ -10,11 +10,32 @@ from .brain import (
     BrainResponse,
     UserMessage,
 )
-from .config import AppConfig, AudioSettings, ConfigurationError, ProviderSettings
-from .providers import OpenRouterBrainProvider, OpenRouterError, create_brain_provider
+from .config import (
+    AppConfig,
+    AudioSettings,
+    ConfigurationError,
+    ProviderSettings,
+    load_environment,
+)
+from .conversation import TranscriptBrainCoordinator, TranscriptHandlingError
+from .providers import (
+    AnthropicBrainProvider,
+    AnthropicError,
+    GeminiBrainProvider,
+    GeminiError,
+    OllamaBrainProvider,
+    OllamaError,
+    OpenAIBrainProvider,
+    OpenAIError,
+    OpenRouterBrainProvider,
+    OpenRouterError,
+    create_brain_provider,
+)
 
 __all__ = [
     "AIBrain",
+    "AnthropicBrainProvider",
+    "AnthropicError",
     "AppConfig",
     "AssistantReply",
     "AudioSettings",
@@ -24,9 +45,18 @@ __all__ = [
     "BrainRequest",
     "BrainResponse",
     "ConfigurationError",
+    "TranscriptBrainCoordinator",
+    "TranscriptHandlingError",
+    "GeminiBrainProvider",
+    "GeminiError",
+    "OpenAIBrainProvider",
+    "OpenAIError",
+    "OllamaBrainProvider",
+    "OllamaError",
     "OpenRouterBrainProvider",
     "OpenRouterError",
     "ProviderSettings",
     "UserMessage",
     "create_brain_provider",
+    "load_environment",
 ]

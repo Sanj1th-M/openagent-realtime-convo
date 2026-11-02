@@ -60,6 +60,8 @@ package is `openagent_realtime_convo`, discovered from `src` by setuptools.
 | `logging.py` | Emit a fixed set of JSON log fields |
 | `__main__.py` | Configuration validation command |
 | `speech.py` | Local microphone capture and Deepgram Flux speech-to-text pipeline |
+| `brain.py` | Provider-independent asynchronous brain interface and data models |
+| `providers/` | OpenRouter, Google Gemini, OpenAI, Anthropic Claude, and Ollama brain adapters plus the provider factory |
 | `__init__.py` | Export `AppConfig`, `AudioSettings`, `ProviderSettings`, and `ConfigurationError` |
 
 The console scripts on this branch are:
@@ -72,7 +74,15 @@ openagent-realtime-stt = openagent_realtime_convo.speech:main
 ## Configuration flow
 
 `AppConfig.from_environment` reads a mapping. When the caller omits that
-mapping, it reads `os.environ`. There is no `.env` loader and no provider SDK.
+mapping, it first loads the repository-root `.env` file without overriding
+existing process values, then reads `os.environ`. The provider adapters use
+direct asynchronous HTTP calls rather than a provider SDK. Gemini configuration
+can be built with provider-specific constructors. Gemini prefers
+`GEMINI_API_KEY` and `GEMINI_MODEL`; OpenAI prefers `OPENAI_API_KEY` and
+`OPENAI_MODEL`; Anthropic prefers `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL`.
+Ollama reads `OLLAMA_BASE_URL` and `OLLAMA_MODEL` and does not require a local
+API key. All provider-specific constructors fall back to the generic provider
+variables where applicable.
 
 ```text
 OPENAGENT_PROVIDER

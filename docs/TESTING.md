@@ -49,12 +49,40 @@ severity and higher. Security-scan limits are in [Security](SECURITY.md).
 Pytest options in `pyproject.toml` are `-ra --strict-config --strict-markers`,
 with `testpaths = ["tests"]`.
 
-## Merged test inventory
+## Current branch test inventory
 
-Thirty-five test functions collect 39 tests across config, repository, speech,
-and wake-word coordinator suites. Note that running tests requires an
-environment where the package's dependencies (`pipecat-ai[deepgram,local]`)
-are installed (e.g. inside `.venv`), because `tests/test_speech.py` imports Pipecat.
+The current Phase 4 branch collects **260 tests** across brain, provider, config,
+repository, speech, and wake-word coordinator suites. Running tests requires
+the project virtual environment (`.venv`) where the package dependencies
+(`pipecat-ai[deepgram,local]`) are installed. Always prefix check commands
+with `.\.venv\Scripts\` on Windows (or `.venv/bin/` on POSIX):
+
+```powershell
+.\.venv\Scripts\ruff.exe check src tests
+.\.venv\Scripts\ruff.exe format --check src tests
+.\.venv\Scripts\mypy.exe src
+.\.venv\Scripts\pytest.exe
+.\.venv\Scripts\bandit.exe -r src
+.\.venv\Scripts\pip-audit.exe -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m build
+```
+
+Running any of these from the **global Python interpreter** (without activating
+`.venv`) will fail because `pipecat-ai` and other runtime dependencies are only
+installed in the virtual environment. The CI workflow activates the environment
+via `pip install -r requirements-dev.txt` and `pip install -e .` into a clean
+Ubuntu runner, so the tools are on PATH and no prefix is needed there.
+
+`openagent-wakeword` is a private local package not declared in `pyproject.toml`.
+It is **not** installed in `.venv` for local development. The coordinator module
+guards its import, so all 260 tests run without it.
+
+`tests/test_brain.py`, `tests/test_openrouter.py`, `tests/test_gemini.py`,
+`tests/test_openai.py`, `tests/test_anthropic.py`, and `tests/test_ollama.py` cover the
+provider-independent data models plus mocked HTTP success, error, and
+malformed-response handling for the OpenRouter, Google Gemini, OpenAI,
+Anthropic Claude, and Ollama adapters. No provider test needs a real API key or
+network request.
 
 `tests/test_config.py`:
 
@@ -112,8 +140,8 @@ are installed (e.g. inside `.venv`), because `tests/test_speech.py` imports Pipe
 | `test_coordinator_stop_called_even_when_start_fails` | `detector.stop()` guaranteed even on start failure |
 | `test_standby_without_initialization_raises_error` | Calling `_standby()` without `run()` raises coordinator error |
 
-On 2026-10-31, all 39 tests passed in the project virtual environment on
-Python 3.12.10.
+On 2026-11-02, all 260 tests passed in the project virtual environment
+(`.venv`, pipecat-ai 1.15.0, Pillow 13.0.0) on Python 3.12.10.
 
 ## Coverage gaps in the merged suite
 
