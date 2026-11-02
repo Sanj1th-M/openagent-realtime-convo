@@ -31,14 +31,15 @@ in this tree.
 
 `.gitignore` excludes:
 
-- `.env` and `.env.*`, with an exception for a future `.env.example`
+- `.env` and `.env.*`, with an exception for `.env.example`
 - `*.pem` and `*.key`
 - virtual environments and build outputs (`.venv/`, `venv/`, `build/`,
   `dist/`, `*.egg-info`)
 
 `tests/test_repository_configuration.py` asserts that `.env`, `*.pem`, and
-`*.key` are present as ignore lines. No `.env.example` is committed. Do not
-add real credentials to examples, tests, or history.
+`*.key` are present as ignore lines. A `.env.example` template is committed;
+it contains only placeholder values. Do not add real credentials to examples,
+tests, or history.
 
 ## Automated scans
 

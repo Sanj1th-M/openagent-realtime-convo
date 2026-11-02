@@ -34,10 +34,17 @@ On a POSIX shell the virtual environment activate script is `.venv/bin/activate`
 
 ## Configure
 
-The program reads the process environment. It does not load a `.env` file.
-Putting values in `.env` has no effect unless something else exports them into
-the environment first. `.env` and `.env.*` are gitignored. `!.env.example` is
-allowed by `.gitignore`, and no `.env.example` is committed.
+The program reads the process environment. Phase 4 also loads a `.env` file
+from the repository root at startup using `python-dotenv` (if present), so
+you can place credentials there without exporting them into your shell session.
+`.env` and `.env.*` are gitignored. A `.env.example` template is committed to
+the repository root — copy it to `.env` and fill in your secrets:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Do not commit `.env` or any file containing real credentials.
 
 ### Configuration command variables
 

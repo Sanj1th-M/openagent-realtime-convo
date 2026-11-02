@@ -38,10 +38,14 @@ class SpeechConfig:
         return f"SpeechConfig(api_key=<redacted>, audio={self.audio!r})"
 
 
-def speech_config_from_environment(environ: Mapping[str, str] | None = None) -> SpeechConfig:
+def speech_config_from_environment(
+    environ: Mapping[str, str] | None = None,
+    *,
+    load_env: bool = True,
+) -> SpeechConfig:
     """Read the documented Deepgram key and existing audio settings from the environment."""
     try:
-        configuration = AppConfig.from_deepgram_environment(environ)
+        configuration = AppConfig.from_deepgram_environment(environ, load_env=load_env)
     except ConfigurationError as error:
         raise SpeechConfigurationError(str(error)) from error
     return SpeechConfig(

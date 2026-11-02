@@ -13,12 +13,17 @@ authors = [{ name = "OpenAgent" }]
 # Deepgram Flux STT and the Windows local microphone transport.
 # Keep this within Pipecat's current stable major version because Phase 3 will
 # import its documented Flux and local-transport APIs directly.
-dependencies = ["pipecat-ai[deepgram,local]>=1.12.0,<2"]
+dependencies = [
+    "pipecat-ai[deepgram,local]>=1.12.0,<2",
+    "httpx>=0.27.0,<1",
+    "python-dotenv>=1.0.1,<2",
+]
 
 [project.scripts]
 openagent-realtime-config = "openagent_realtime_convo.__main__:main"
 openagent-realtime-stt = "openagent_realtime_convo.speech:main"
 openagent-jarvis = "openagent_realtime_convo.wakeword:main"
+openagent-realtime-brain-smoke = "openagent_realtime_convo.brain_smoke:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -41,3 +46,7 @@ files = ["src", "tests"]
 strict = true
 warn_unused_ignores = true
 exclude = ["^\\.git/", "^\\.venv/"]
+
+[[tool.mypy.overrides]]
+module = "openagent_wakeword"
+ignore_missing_imports = true
