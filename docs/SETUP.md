@@ -38,7 +38,7 @@ The program reads the process environment. Phase 4 also loads a `.env` file
 from the repository root at startup using `python-dotenv` (if present), so
 you can place credentials there without exporting them into your shell session.
 `.env` and `.env.*` are gitignored. A `.env.example` template is committed to
-the repository root — copy it to `.env` and fill in your secrets:
+the repository root â€” copy it to `.env` and fill in your secrets:
 
 ```powershell
 Copy-Item .env.example .env
