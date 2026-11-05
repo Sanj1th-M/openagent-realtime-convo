@@ -51,7 +51,7 @@ with `testpaths = ["tests"]`.
 
 ## Current branch test inventory
 
-The current Phase 4 branch collects **260 tests** across brain, provider, config,
+The current Phase 4 and TTS feature branch collects **273 tests** across brain, provider, config,
 repository, speech, and wake-word coordinator suites. Running tests requires
 the project virtual environment (`.venv`) where the package dependencies
 (`pipecat-ai[deepgram,local]`) are installed. Always prefix check commands
@@ -112,6 +112,11 @@ network request.
 | `test_flux_update_event_prints_an_interim_transcript` | `on_update` event handler emits `[INTERIM]` transcript |
 | `test_speech_config_keeps_key_private` | `SpeechConfig` repr redacts `api_key` |
 | `test_microphone_startup_failure_is_safe_and_actionable` | Microphone failure wraps into `SpeechRuntimeError` with user message |
+
+`tests/test_tts.py` adds mocked coverage for OpenAI PCM request construction, provider HTTP
+errors, timeout/cancellation, and content-type validation, text/audio model validation,
+the existing `BrainResponse` integration, environment configuration, and playback failure handling.
+The provider and player tests do not need credentials, a network connection, or a device.
 
 
 `tests/test_wakeword.py`:

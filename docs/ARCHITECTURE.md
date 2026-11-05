@@ -1,8 +1,9 @@
 # Architecture
 
-This document describes the package extended through Phase 4. Phase 2 established the
-configuration foundation; Phase 3 added the speech-input pipeline; Phase 4 adds the
-wake-word coordinator. Later conversation capabilities are outside this architecture.
+This document describes the package extended through the Phase 4 working tree and TTS
+feature branch. Phase 2 established the configuration foundation; Phase 3 added the
+speech-input pipeline; Phase 4 adds brain providers and the wake-word coordinator. The
+TTS branch adds standalone speech output without wiring it into the live conversation loop.
 Their status is in [Project status](PROJECT_STATUS.md).
 
 ## Component boundaries
@@ -16,10 +17,12 @@ flowchart TB
     stt["speech.py (LocalAudioTransport -> DeepgramFluxSTTService -> TranscriptPrinter)"]
     sttCli["openagent-realtime-stt"]
     coord["wakeword.py (WakeWordCoordinator)"]
+    tts["tts.py (SpeechOutput -> TTSProvider -> AudioPlayer)"]
     jarvisCli["openagent-jarvis"]
     env --> config --> cli
     env --> config --> stt --> sttCli
     env --> config --> coord --> jarvisCli
+    response["BrainResponse"] --> tts
   end
 
   subgraph separate["Separate repository"]
@@ -62,6 +65,7 @@ package is `openagent_realtime_convo`, discovered from `src` by setuptools.
 | `speech.py` | Local microphone capture and Deepgram Flux speech-to-text pipeline |
 | `brain.py` | Provider-independent asynchronous brain interface and data models |
 | `providers/` | OpenRouter, Google Gemini, OpenAI, Anthropic Claude, and Ollama brain adapters plus the provider factory |
+| `tts.py` | Provider-neutral speech models and orchestration, OpenAI speech adapter, and local PyAudio playback |
 | `__init__.py` | Export `AppConfig`, `AudioSettings`, `ProviderSettings`, and `ConfigurationError` |
 
 The console scripts on this branch are:
@@ -70,6 +74,13 @@ The console scripts on this branch are:
 openagent-realtime-config = openagent_realtime_convo.__main__:main
 openagent-realtime-stt = openagent_realtime_convo.speech:main
 ```
+
+TTS is currently a library component with no console script. `SpeechOutput.speak()` takes
+an existing `BrainResponse`; it does not invoke `TranscriptBrainCoordinator` or a brain
+provider. Its OpenAI adapter requests 24 kHz mono PCM (signed 16-bit little-endian) and
+the local player streams it to the default output device. The API key comes from
+`OPENAI_TTS_API_KEY` or `OPENAI_API_KEY`; model and voice overrides use
+`OPENAGENT_TTS_MODEL` and `OPENAGENT_TTS_VOICE`.
 
 ## Configuration flow
 

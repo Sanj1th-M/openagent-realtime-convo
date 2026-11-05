@@ -118,6 +118,17 @@ without it installed. Configuration reads `OPENAGENT_WAKEWORD_MODEL_DIR`,
 
 None currently open.
 
+## Feature-branch record
+
+### D-014. Standalone TTS adapter and PCM playback
+
+The `feat/phase4-tts-integration` working tree uses OpenAI's Speech API with raw 24 kHz,
+mono, signed 16-bit little-endian PCM. This format is documented by the provider and can
+be played using the PyAudio dependency already brought by Pipecat's `local` extra.
+`SpeechOutput` consumes an existing `BrainResponse`, and a separate `TTSProvider` protocol
+keeps the brain interface provider-independent. This is a branch implementation decision,
+not a merged-tree decision. Live API and speaker verification remain pending.
+
 ## Related documents
 
 - [README](../README.md)

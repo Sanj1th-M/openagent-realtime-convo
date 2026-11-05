@@ -103,6 +103,17 @@ invalid configuration it logs `configuration_invalid`, prints a plain-text error
 and exits `2`. Keep credentials out of source, logs, and committed `.env` files. Install
 steps for the merged configuration command are in [Setup](docs/SETUP.md).
 
+### Speech output (in progress)
+
+The TTS feature branch adds `SpeechOutput`, an asynchronous component that accepts an
+existing `BrainResponse`, synthesizes it with OpenAI's Speech API, and plays raw PCM
+through the default local output device. It is a library integration point only; it is not
+wired into the wake-word or microphone conversation loop. Set `OPENAI_TTS_API_KEY` (or
+reuse `OPENAI_API_KEY`) and optionally `OPENAGENT_TTS_MODEL` and
+`OPENAGENT_TTS_VOICE`. The defaults are `gpt-4o-mini-tts` and `marin`. Speech synthesis
+is a paid remote service; reply text is sent to OpenAI for synthesis. See [Setup](docs/SETUP.md)
+for a manual playback example and [Project status](docs/PROJECT_STATUS.md) for verification limits.
+
 ## Speech-to-text command
 
 The `openagent-realtime-stt` command is merged into `main`. Install the project into the

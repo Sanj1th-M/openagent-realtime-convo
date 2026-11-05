@@ -25,6 +25,10 @@ the brain adapters are not yet wired into a live conversation. Live microphone
 and Deepgram end-to-end testing is still pending, and the feature branch is
 unmerged.
 
+The TTS feature branch implements a standalone, mocked-testable TTS component. Automated
+quality checks pass; manual playback verification remains pending, and it is not integrated
+into the wake-word → STT → brain flow.
+
 ## Planned
 
 - End-to-end verification of live microphone capture and transcript output with Deepgram Flux.
@@ -38,7 +42,7 @@ planned boundaries are illustrated in [Integration map](INTEGRATION_MAP.md).
 
 ## Undecided
 
-- Conversation-model and speech-output provider choices.
+- Conversation-model provider choice and whether the branch TTS provider will be accepted.
 - Coordinator and UFO² integration interfaces.
 - Windows audio host API and deployment model.
 - Any phase number after Phase 3.

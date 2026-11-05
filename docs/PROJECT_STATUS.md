@@ -59,11 +59,20 @@ use mockable asynchronous HTTP clients and `.env` loading with
 process-environment precedence. `AppConfig.from_brain_environment()` selects an
 adapter from common configuration, and `TranscriptBrainCoordinator` validates a
 finalized STT transcript, applies a timeout, and returns the brain response.
-Neither component is wired into the live microphone pipeline and no TTS exists.
+Neither component is wired into the live microphone pipeline. Merged `main` has no TTS
+component; the feature-branch implementation is described below.
 `openagent-realtime-brain-smoke` can safely make an opt-in live request for
 configured providers and skips unavailable configuration or Ollama models.
 Live microphone and Deepgram end-to-end testing has not been executed in CI or
 on hardware, and the branch is unmerged.
+
+## In progress on the TTS feature branch
+
+`tts.py` adds an asynchronous provider-neutral speech interface, an OpenAI Speech API
+adapter, bounded PCM validation, and local playback. Mocked tests cover synthesis and the
+`BrainResponse` integration. Automated quality checks pass, including the full async test
+suite. It is not connected to the live microphone pipeline, and live API/speaker checks
+remain pending.
 
 ## Planned
 
@@ -84,7 +93,7 @@ them has a design, interface, or acceptance criterion in this repository.
 
 - A phase number or acceptance criterion for the CI foundation in `1d2a273`.
 - Any phase number after Phase 3.
-- The speech-output provider and library.
+- Whether the feature-branch OpenAI speech provider will be accepted for merge.
 - The conversation model and how `OPENAGENT_PROVIDER` relates to `DEEPGRAM_API_KEY`.
 - The openagent coordinator interface.
 - Whether UFO² will be called from this repository.

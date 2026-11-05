@@ -68,6 +68,38 @@ Do not commit `.env` or any file containing real credentials.
 Required values must contain a non-whitespace character. Optional audio values,
 when set, must be positive integers.
 
+### Speech-output variables (TTS feature branch)
+
+| Variable | Required | Default |
+| --- | --- | --- |
+| `OPENAI_TTS_API_KEY` or `OPENAI_API_KEY` | yes | — |
+| `OPENAGENT_TTS_MODEL` | no | `gpt-4o-mini-tts` |
+| `OPENAGENT_TTS_VOICE` | no | `marin` |
+
+The TTS component uses OpenAI's HTTPS Speech API, which may incur usage charges. To speak
+an already-created reply from a Python session:
+
+```python
+import asyncio
+
+from openagent_realtime_convo.brain import BrainResponse
+from openagent_realtime_convo.tts import speech_output_from_environment
+
+
+async def main() -> None:
+    output = speech_output_from_environment()
+    try:
+        await output.speak(BrainResponse("Hello, I am Jarvis."))
+    finally:
+        await output.aclose()
+
+
+asyncio.run(main())
+```
+
+This requires a working local audio output device. Automated tests mock the provider and
+player; they do not verify a real API account or physical speaker.
+
 ### Running openagent-realtime-config
 
 PowerShell:
