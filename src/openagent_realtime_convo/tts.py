@@ -19,6 +19,19 @@ MAX_AUDIO_BYTES = 20 * 1024 * 1024
 PCM_SAMPLE_RATE_HZ = 24_000
 PCM_CHANNELS = 1
 
+# Deepgram TTS REST endpoint (v1/speak)
+_DEEPGRAM_TTS_URL = "https://api.deepgram.com/v1/speak"
+
+# Content types that Deepgram returns for raw linear16 PCM (container=none).
+# The API returns "audio/l16;rate=24000" (IANA L16) in practice; the others
+# are kept as defensive fallbacks for any future API variation.
+_DEEPGRAM_PCM_CONTENT_TYPES = {
+    "audio/l16",
+    "audio/pcm",
+    "audio/linear16",
+    "application/octet-stream",
+}
+
 
 class TTSError(RuntimeError):
     """Raised for synthesis or playback failures without exposing provider data."""
@@ -66,47 +79,69 @@ class AudioPlayer(Protocol):
     async def play(self, audio: AudioData) -> None: ...
 
 
-class OpenAITTSProvider:
-    """OpenAI Speech API adapter returning raw 24 kHz signed 16-bit PCM."""
+class DeepgramTTSProvider:
+    """Deepgram Text-to-Speech adapter returning raw 24 kHz signed 16-bit PCM.
+
+    Calls ``POST https://api.deepgram.com/v1/speak`` with ``encoding=linear16``,
+    ``container=none``, and ``sample_rate=24000``, matching the existing PCM
+    contract expected by :class:`AudioData` and :class:`PyAudioPlayer`.
+
+    API credentials are read exclusively from the ``api_key`` constructor
+    argument and are never logged or exposed through ``repr``.
+    """
 
     def __init__(
         self,
         api_key: str,
         *,
-        model: str = "gpt-4o-mini-tts",
-        voice: str = "marin",
+        model: str = "aura-2-asteria-en",
         timeout_seconds: float = 30.0,
         client: Any | None = None,
     ) -> None:
         if not api_key.strip():
-            raise TTSError("OpenAI API key must not be empty")
+            raise TTSError("Deepgram API key must not be empty")
         if timeout_seconds <= 0:
             raise TTSError("timeout_seconds must be positive")
         self._api_key = api_key
         self._model = model
-        self._voice = voice
         self._timeout = timeout_seconds
         self._client = client or httpx.AsyncClient(timeout=timeout_seconds)
         self._owns_client = client is None
 
+    def __repr__(self) -> str:  # keep api_key out of repr
+        return f"DeepgramTTSProvider(model={self._model!r})"
+
     async def synthesize(self, request: SpeechRequest) -> AudioData:
+        """Synthesize *request.text* and return raw PCM bytes.
+
+        Deepgram query parameters used:
+        - ``model``      – full model/voice string, e.g. ``aura-2-asteria-en``
+        - ``encoding``   – ``linear16`` (signed 16-bit little-endian PCM)
+        - ``container``  – ``none`` (raw headerless PCM, no WAV wrapper)
+        - ``sample_rate``– ``24000`` Hz to match :data:`PCM_SAMPLE_RATE_HZ`
+        """
+        params = {
+            "model": self._model,
+            "encoding": "linear16",
+            "container": "none",
+            "sample_rate": str(PCM_SAMPLE_RATE_HZ),
+        }
         try:
             async with self._client.stream(
                 "POST",
-                "https://api.openai.com/v1/audio/speech",
-                headers={"Authorization": f"Bearer {self._api_key}"},
-                json={
-                    "model": self._model,
-                    "voice": self._voice,
-                    "input": request.text,
-                    "response_format": "pcm",
+                _DEEPGRAM_TTS_URL,
+                headers={
+                    "Authorization": f"Token {self._api_key}",
+                    "Content-Type": "application/json",
                 },
+                json={"text": request.text},
+                params=params,
                 timeout=self._timeout,
             ) as response:
                 if response.status_code < 200 or response.status_code >= 300:
                     raise TTSError(f"Speech provider returned HTTP {response.status_code}")
                 content_type = response.headers.get("content-type", "").split(";", 1)[0].lower()
-                if content_type not in {"audio/pcm", "application/octet-stream"}:
+                if content_type not in _DEEPGRAM_PCM_CONTENT_TYPES:
                     raise TTSError("Speech provider returned an unsupported content type")
                 content_length = response.headers.get("content-length")
                 if content_length and int(content_length) > MAX_AUDIO_BYTES:
@@ -217,26 +252,30 @@ def speech_output_from_environment(
     *,
     load_env: bool = True,
 ) -> SpeechOutput:
+    """Build a :class:`SpeechOutput` from the process environment.
+
+    Required variable: ``DEEPGRAM_API_KEY``.
+    Optional variable: ``OPENAGENT_TTS_MODEL`` (default ``aura-2-asteria-en``).
+
+    The Deepgram API key is never logged or exposed through provider ``repr``.
+    """
     if environ is None:
         if load_env:
             load_environment()
         environment: Mapping[str, str] = os.environ
     else:
         environment = environ
-    api_key = environment.get("OPENAI_TTS_API_KEY") or environment.get("OPENAI_API_KEY")
+    api_key = environment.get("DEEPGRAM_API_KEY")
     if api_key is None or not api_key.strip():
-        raise ConfigurationError("OPENAI_TTS_API_KEY or OPENAI_API_KEY must be set")
-    model = environment.get("OPENAGENT_TTS_MODEL", "gpt-4o-mini-tts")
-    voice = environment.get("OPENAGENT_TTS_VOICE", "marin")
-    return SpeechOutput(
-        OpenAITTSProvider(api_key.strip(), model=model, voice=voice), PyAudioPlayer()
-    )
+        raise ConfigurationError("DEEPGRAM_API_KEY must be set")
+    model = environment.get("OPENAGENT_TTS_MODEL", "aura-2-asteria-en")
+    return SpeechOutput(DeepgramTTSProvider(api_key.strip(), model=model), PyAudioPlayer())
 
 
 __all__ = [
     "AudioData",
     "AudioPlayer",
-    "OpenAITTSProvider",
+    "DeepgramTTSProvider",
     "PyAudioPlayer",
     "SpeechOutput",
     "SpeechRequest",

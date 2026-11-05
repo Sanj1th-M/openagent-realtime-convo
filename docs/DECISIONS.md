@@ -120,11 +120,14 @@ None currently open.
 
 ## Feature-branch record
 
-### D-014. Standalone TTS adapter and PCM playback
+### D-014. Deepgram TTS adapter with raw linear16 PCM playback
 
-The `feat/phase4-tts-integration` working tree uses OpenAI's Speech API with raw 24 kHz,
-mono, signed 16-bit little-endian PCM. This format is documented by the provider and can
-be played using the PyAudio dependency already brought by Pipecat's `local` extra.
+The TTS feature branch was updated to use Deepgram's `/v1/speak` REST API instead of
+OpenAI's Speech API. The adapter requests 24 kHz mono raw signed 16-bit little-endian PCM via
+`encoding=linear16` and `container=none` query parameters, matching the existing`AudioData`
+and `PyAudioPlayer` contracts without conversion. The Deepgram API key is read from
+`DEEPGRAM_API_KEY` (the same key already used by the STT pipeline). The optional TTS model
+(full model/voice string, e.g. `aura-2-asteria-en`) is configured via `OPENAGENT_TTS_MODEL`.
 `SpeechOutput` consumes an existing `BrainResponse`, and a separate `TTSProvider` protocol
 keeps the brain interface provider-independent. This is a branch implementation decision,
 not a merged-tree decision. Live API and speaker verification remain pending.

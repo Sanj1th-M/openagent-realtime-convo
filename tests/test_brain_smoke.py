@@ -71,6 +71,8 @@ async def test_smoke_test_defaults_to_selected_provider_only(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.setenv("OPENAGENT_PROVIDER", "openrouter")
     monkeypatch.setenv("OPENROUTER_API_KEY", "mock-or-key")
     monkeypatch.setenv("OPENAI_API_KEY", "mock-openai-key")
@@ -89,7 +91,7 @@ async def test_smoke_test_defaults_to_selected_provider_only(
         "openagent_realtime_convo.brain_smoke.create_brain_provider",
         return_value=mock_provider,
     ):
-        code = await smoke_test()
+        code = await smoke_test(load_env=False)
 
     assert code == 0
     captured = capsys.readouterr()
@@ -103,6 +105,8 @@ async def test_smoke_test_all_flag_runs_all_configured(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.setenv("OPENAGENT_PROVIDER", "openrouter")
     monkeypatch.setenv("OPENROUTER_API_KEY", "mock-or-key")
     monkeypatch.setenv("OPENAI_API_KEY", "mock-openai-key")
@@ -114,10 +118,34 @@ async def test_smoke_test_all_flag_runs_all_configured(
         "openagent_realtime_convo.brain_smoke.create_brain_provider",
         return_value=mock_provider,
     ):
-        code = await smoke_test(test_all=True)
+        code = await smoke_test(test_all=True, load_env=False)
 
     assert code == 0
     captured = capsys.readouterr()
     assert "PASS openrouter" in captured.out
     assert "PASS openai" in captured.out
+    assert "SKIP gemini" in captured.out
+
+
+@pytest.mark.anyio
+async def test_smoke_test_respects_explicit_environ(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    env = {
+        "OPENAGENT_PROVIDER": "openrouter",
+        "OPENROUTER_API_KEY": "mock-or-key",
+    }
+    mock_provider = AsyncMock()
+    mock_provider.generate_response.return_value = BrainResponse(reply="ready", model="mock-model")
+
+    with patch(
+        "openagent_realtime_convo.brain_smoke.create_brain_provider",
+        return_value=mock_provider,
+    ):
+        code = await smoke_test(test_all=True, environ=env, load_env=False)
+
+    assert code == 0
+    captured = capsys.readouterr()
+    assert "PASS openrouter" in captured.out
+    assert "SKIP openai" in captured.out
     assert "SKIP gemini" in captured.out

@@ -11,7 +11,7 @@ import argparse
 import asyncio
 import os
 import sys
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 import httpx
 
@@ -92,6 +92,8 @@ async def smoke_test(
     providers: Sequence[str] | None = None,
     *,
     test_all: bool = False,
+    load_env: bool = True,
+    environ: Mapping[str, str] | None = None,
 ) -> int:
     """Run requested configured providers and print only status-safe output.
 
@@ -99,8 +101,9 @@ async def smoke_test(
     the provider selected by OPENAGENT_PROVIDER (if configured).
     If test_all is True, tests all configured providers.
     """
-    load_environment()
-    environment = dict(os.environ)
+    if load_env:
+        load_environment()
+    environment = dict(os.environ if environ is None else environ)
     selected = environment.get("OPENAGENT_PROVIDER", "").strip().lower()
 
     if providers:

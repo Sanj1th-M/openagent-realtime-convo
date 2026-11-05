@@ -65,7 +65,7 @@ package is `openagent_realtime_convo`, discovered from `src` by setuptools.
 | `speech.py` | Local microphone capture and Deepgram Flux speech-to-text pipeline |
 | `brain.py` | Provider-independent asynchronous brain interface and data models |
 | `providers/` | OpenRouter, Google Gemini, OpenAI, Anthropic Claude, and Ollama brain adapters plus the provider factory |
-| `tts.py` | Provider-neutral speech models and orchestration, OpenAI speech adapter, and local PyAudio playback |
+| `tts.py` | Provider-neutral speech models and orchestration, Deepgram TTS adapter, and local PyAudio playback |
 | `__init__.py` | Export `AppConfig`, `AudioSettings`, `ProviderSettings`, and `ConfigurationError` |
 
 The console scripts on this branch are:
@@ -77,10 +77,9 @@ openagent-realtime-stt = openagent_realtime_convo.speech:main
 
 TTS is currently a library component with no console script. `SpeechOutput.speak()` takes
 an existing `BrainResponse`; it does not invoke `TranscriptBrainCoordinator` or a brain
-provider. Its OpenAI adapter requests 24 kHz mono PCM (signed 16-bit little-endian) and
-the local player streams it to the default output device. The API key comes from
-`OPENAI_TTS_API_KEY` or `OPENAI_API_KEY`; model and voice overrides use
-`OPENAGENT_TTS_MODEL` and `OPENAGENT_TTS_VOICE`.
+provider. The Deepgram adapter requests 24 kHz mono raw linear16 PCM (`encoding=linear16`,
+`container=none`) and the local player streams it to the default output device via PyAudio.
+The API key comes from `DEEPGRAM_API_KEY`; the model/voice is set with `OPENAGENT_TTS_MODEL`
 
 ## Configuration flow
 

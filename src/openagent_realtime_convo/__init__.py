@@ -17,7 +17,12 @@ from .config import (
     ProviderSettings,
     load_environment,
 )
-from .conversation import TranscriptBrainCoordinator, TranscriptHandlingError
+from .conversation import (
+    SpeechService,
+    TranscriptBrainCoordinator,
+    TranscriptHandlingError,
+    transcript_coordinator_from_environment,
+)
 from .providers import (
     AnthropicBrainProvider,
     AnthropicError,
@@ -45,6 +50,7 @@ __all__ = [
     "BrainRequest",
     "BrainResponse",
     "ConfigurationError",
+    "SpeechService",
     "TranscriptBrainCoordinator",
     "TranscriptHandlingError",
     "GeminiBrainProvider",
@@ -59,4 +65,5 @@ __all__ = [
     "UserMessage",
     "create_brain_provider",
     "load_environment",
+    "transcript_coordinator_from_environment",
 ]

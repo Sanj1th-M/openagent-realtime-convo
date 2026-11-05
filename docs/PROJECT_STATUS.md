@@ -68,10 +68,13 @@ on hardware, and the branch is unmerged.
 
 ## In progress on the TTS feature branch
 
-`tts.py` adds an asynchronous provider-neutral speech interface, an OpenAI Speech API
-adapter, bounded PCM validation, and local playback. Mocked tests cover synthesis and the
-`BrainResponse` integration. Automated quality checks pass, including the full async test
-suite. It is not connected to the live microphone pipeline, and live API/speaker checks
+`tts.py` adds an asynchronous provider-neutral speech interface, a Deepgram TTS adapter
+(`/v1/speak` REST API, raw linear16 PCM via `encoding=linear16`, `container=none`,
+`sample_rate=24000`), bounded PCM validation, and local PyAudio playback. The adapter reads
+`DEEPGRAM_API_KEY` and the optional `OPENAGENT_TTS_MODEL` (default `aura-2-asteria-en`).
+Mocked tests cover synthesis, HTTP errors, timeouts, malformed responses, missing credentials,
+and the `BrainResponse` integration. Automated quality checks pass, including the full async
+test suite. It is not connected to the live microphone pipeline, and live API/speaker checks
 remain pending.
 
 ## Planned
